@@ -1,0 +1,28 @@
+name: Fetch Geospatial Data
+
+on:
+  schedule:
+    - cron: '0 8 * * *' 
+  workflow_dispatch:
+
+jobs:
+  fetch_data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Create data directory
+        run: mkdir -p data
+
+      - name: Fetch recent earthquakes data (GeoJSON)
+        run: |
+          curl -s https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson > data/earthquakes.geojson
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "Data Pipeline Bot"
+          git config --global user.email "action@github.com"
+          git add data/earthquakes.geojson
+          git commit -m "Update daily geospatial earthquake data" || exit 0
+          git push
